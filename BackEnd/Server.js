@@ -8,9 +8,10 @@ const course = require("./Routes/CourseRoute");
 const batch = require("./Routes/BatchRoute");
 const resource = require("./Routes/ResourceRoute");
 const applicant = require("./Routes/ApplicantRoute");
-const payment=require("./Routes/PaymentRoute");
-const registred=require("./Routes/Registered_StudentRoute");
-const grade=require("./Routes/GradeRoute");
+const payment = require("./Routes/PaymentRoute");
+const registred = require("./Routes/Registered_StudentRoute");
+const grade = require("./Routes/GradeRoute");
+const complain = require("./Routes/ComplainRoute");
 const dbConnect = require("./Config/dbConnection");
 const port = process.env.PORT || 5000;
 const bodyParser = require("body-parser");
@@ -25,6 +26,7 @@ app.use("/Api/applicant", applicant);
 app.use("/Api/payment", payment);
 app.use("/Api/registred", registred);
 app.use("/Api/grade", grade);
+app.use("/Api/complain", complain);
 
 app.use(urlencoded({ extended: true }));
 app.listen(port, () => {
