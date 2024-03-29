@@ -2,6 +2,8 @@ const course = require("../Models/Course");
 const batch = require("../Models/Batch");
 const teacher = require("../Models/Teacher");
 const resource = require("../Models/Resource");
+const student = require("../Models/Registered_Student");
+const Grade = require("../Models/Grade");
 //create course
 
 const createCourse = async (req, res) => {
@@ -37,61 +39,106 @@ const getCourse = async (req, res) => {
 };
 //get courses by teacher id
 
-const getCourseByTeacherId=async(req,res)=>{
+const getCourseByTeacherId = async (req, res) => {
   //teacher id
-const{id}=req.params;
-const response=await teacher.findById(id)
-const Courses=response.courseName;
-res.status(200).json(Courses);//Courses are Array
-}
+  const { id } = req.params;
+  const response = await teacher.findById(id);
+  const Courses = response.courseName;
+  res.status(200).json(Courses); //Courses are Array
+};
 
 //get courses by teacher id with resources
 
-const getCourseByTeacherIdWithResources=async(req,res)=>{
-  let MyCourses=[]
+const getCourseByTeacherIdWithResources = async (req, res) => {
+  let MyCourses = [];
   //teacher id
-const{id}=req.params;
-const response=await teacher.findById(id)
-const Courses=response.courseName;
-for(courseName of Courses)
-{
-  const Course=await course.findOne({courseName:courseName});
-  MyCourses.push(Course);
+  const { id } = req.params;
+  const response = await teacher.findById(id);
+  const Courses = response.courseName;
+  for (courseName of Courses) {
+    const Course = await course.findOne({ courseName: courseName });
+    MyCourses.push(Course);
+  }
 
-}
+  const materials = await resource.find({});
+  const coursesWithMaterials = MyCourses.map((course) => {
+    const relatedMaterials = materials.filter(
+      (material) => material.course_Id.toString() === course._id.toString()
+    );
 
+    return {
+      id: course._id,
+      name: course.courseName,
+      materials: relatedMaterials,
+    };
+  });
 
-const materials=await resource.find({});
-const coursesWithMaterials = MyCourses.map((course) => {
-  const relatedMaterials = materials.filter(
-    (material) => material.course_Id.toString() === course._id.toString()
-  );
+  res.status(200).json(coursesWithMaterials);
+};
 
-  return {
-    id: course._id,
-    name: course.courseName,
-    materials: relatedMaterials,
-  };
-});
+//get all courses which are taken by a student
 
-res.status(200).json(coursesWithMaterials);
-}
+const getCoursesByStudent = async (req, res) => {
+  //student id
+  const { id } = req.params;
+  try {
+    const students = await student.findOne({ _id: id, onAttendance: true });
+    if (!students) {
+      throw Error("Student not existed");
+    }
+    const batch_Id = students.batch_Id;
+    const courses = await course.find({ batch_Id });
+    res.status(200).json(courses);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+//get all courses a student which are not graded yet
 
-//get batches by teacher id
+const getUngradedCoursesWmaterials = async (req, res) => {
+  //student id
+  const { id } = req.params;
+  try {
+    const students = await student.findOne({ _id: id, onAttendance: true });
+    if (!students) {
+      throw Error("Student not existed");
+    }
+    const batch_Id = students.batch_Id;
+    const courses = await course.find({ batch_Id });
+    const grade = await Grade.find({
+      student_id: id,
+    });
+    // Filter out ungraded courses
+    const ungradedCourses = courses.filter((course) => {
+      return !grade.some(
+        (gradedCourse) => gradedCourse.course_id.toString() === course._id.toString()
+      );
+    });
 
-const getBatchByTeacherId=async(req,res)=>{
-  //teacher id
-const{id}=req.params;
-const response=await teacher.findById(id)
-const Batches=response.batchName;
-res.status(200).json(Batches);//Batches are Array
-}
+    const materials = await resource.find({});
+  const coursesWithMaterials = ungradedCourses.map((course) => {
+    const relatedMaterials = materials.filter(
+      (material) => material.course_Id.toString() === course._id.toString()
+    );
 
+    return {
+      id: course._id,
+      name: course.courseName,
+      materials: relatedMaterials,
+    };
+  });
+
+    res.status(200).json(coursesWithMaterials);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
 module.exports = {
   createCourse,
   getCourse,
   getCourseByTeacherId,
-  getBatchByTeacherId,
-  getCourseByTeacherIdWithResources
+  getCoursesByStudent,
+  getCourseByTeacherIdWithResources,
+  getUngradedCoursesWmaterials
 };
