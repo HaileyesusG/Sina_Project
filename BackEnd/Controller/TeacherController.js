@@ -44,58 +44,34 @@ const createTeacher = async (req, res) => {
   }
 };
 
-//Add Courses for the teacher
+//Add Batches And Course for the teacher
 
-const addCourseForTeacher=async(req,res)=>{
+const addBatchAndCourseForTeacher = async (req, res) => {
   //teacher's id
-const{id}=req.params;
-const{courseName}=req.body;
-try{
-  const exists = await course.findOne({ courseName });
-  if (!exists) {
-    throw Error(" this course does not exit");
+  const { id } = req.params;
+  const { batchName, courseName } = req.body;
+  try {
+    const exists = await batch.findOne({ batchName });
+    if (!exists) {
+      throw Error(" this batch does not exit");
+    }
+    const exists2 = await course.findOne({ courseName });
+    if (!exists2) {
+      throw Error(" this course does not exit");
+    }
+    const teachers = await teacher.findById(id);
+    teachers.batchName.push(batchName);
+    const teachers2 = await teacher.findById(id);
+    teachers.courseName.push(courseName);
+    // Save the updated teacher object
+    await teachers.save();
+    await teachers2.save();
+    const Teacher = await teacher.findById(id);
+    res.status(200).json(Teacher);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
-const teachers=await teacher.findById(id)
-teachers.courseName.push(courseName);
-
-  // Save the updated teacher object
-  await teachers.save();
-  const Teacher=await teacher.findById(id);
-  res.status(400).json(Teacher)
-}
-catch(error)
-{
-  res.status(400).json({message:error.message})
-}
-
-}
-
-//Add Batches for the teacher
-
-const addBatchForTeacher=async(req,res)=>{
-  //teacher's id
-const{id}=req.params;
-const{batchName}=req.body;
-try{
-  const exists = await batch.findOne({ batchName });
-  if (!exists) {
-    throw Error(" this batch does not exit");
-  }
-const teachers=await teacher.findById(id)
-teachers.batchName.push(batchName);
-
-  // Save the updated teacher object
-  await teachers.save();
-  const Teacher=await teacher.findById(id);
-  res.status(400).json(Teacher)
-}
-catch(error)
-{
-  res.status(400).json({message:error.message})
-}
-
-}
-
+};
 
 //get teacher
 const getTeacher = async (req, res) => {
@@ -138,6 +114,5 @@ module.exports = {
   createTeacher,
   getTeacher,
   sendEmail,
-  addCourseForTeacher,
-  addBatchForTeacher
+  addBatchAndCourseForTeacher,
 };

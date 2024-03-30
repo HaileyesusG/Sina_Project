@@ -22,16 +22,21 @@ const getBatch = async (req, res) => {
 
 //get batches by teacher id
 
-const getBatchByTeacherId=async(req,res)=>{
+const getBatchByTeacherId = async (req, res) => {
+  let MyBatchs = [];
   //teacher id
-const{id}=req.params;
-const response=await teacher.findById(id)
-const Batches=response.batchName;
-res.status(200).json(Batches);//Batches are Array
-}
+  const { id } = req.params;
+  const response = await teacher.findById(id);
+  const Batches = response.batchName;
+  for (c of Batches) {
+    const baths = await batch.findOne({ batchName: c });
+    MyBatchs.push(baths);
+  }
+  res.status(200).json(MyBatchs); //Batches are Array
+};
 
 module.exports = {
   createBatch,
   getBatch,
-  getBatchByTeacherId
+  getBatchByTeacherId,
 };

@@ -2,14 +2,14 @@ const {
   createTeacher,
   getTeacher,
   sendEmail,
-  addCourseForTeacher,
-  addBatchForTeacher
+  addBatchAndCourseForTeacher,
 } = require("../Controller/TeacherController");
 
 const express = require("express");
 const router = express.Router();
-router.route("/addCourseForTeacher/:id").post(addCourseForTeacher);
-router.route("/addBatchForTeacher/:id").post(addBatchForTeacher);
+router
+  .route("/addBatchAndCourseForTeacher/:id")
+  .post(addBatchAndCourseForTeacher);
 router.route("/createTeacher").post(createTeacher);
 router.route("/getTeacher").post(getTeacher);
 router.route("/sendEmail").post(sendEmail);

@@ -40,11 +40,16 @@ const getCourse = async (req, res) => {
 //get courses by teacher id
 
 const getCourseByTeacherId = async (req, res) => {
+  let MyCourses = [];
   //teacher id
   const { id } = req.params;
   const response = await teacher.findById(id);
   const Courses = response.courseName;
-  res.status(200).json(Courses); //Courses are Array
+  for (c of Courses) {
+    const courses = await course.findOne({ courseName: c });
+    MyCourses.push(courses);
+  }
+  res.status(200).json(MyCourses); //Courses are Array
 };
 
 //get courses by teacher id with resources
@@ -111,22 +116,23 @@ const getUngradedCoursesWmaterials = async (req, res) => {
     // Filter out ungraded courses
     const ungradedCourses = courses.filter((course) => {
       return !grade.some(
-        (gradedCourse) => gradedCourse.course_id.toString() === course._id.toString()
+        (gradedCourse) =>
+          gradedCourse.course_id.toString() === course._id.toString()
       );
     });
 
     const materials = await resource.find({});
-  const coursesWithMaterials = ungradedCourses.map((course) => {
-    const relatedMaterials = materials.filter(
-      (material) => material.course_Id.toString() === course._id.toString()
-    );
+    const coursesWithMaterials = ungradedCourses.map((course) => {
+      const relatedMaterials = materials.filter(
+        (material) => material.course_Id.toString() === course._id.toString()
+      );
 
-    return {
-      id: course._id,
-      name: course.courseName,
-      materials: relatedMaterials,
-    };
-  });
+      return {
+        id: course._id,
+        name: course.courseName,
+        materials: relatedMaterials,
+      };
+    });
 
     res.status(200).json(coursesWithMaterials);
   } catch (error) {
@@ -140,5 +146,5 @@ module.exports = {
   getCourseByTeacherId,
   getCoursesByStudent,
   getCourseByTeacherIdWithResources,
-  getUngradedCoursesWmaterials
+  getUngradedCoursesWmaterials,
 };
